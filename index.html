@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Уборка площадки · 3 этаж</title>
+<meta name="description" content="Очередь по уборке общей площадки на 3 этаже: чья неделя, кто следующий, история и статистика.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧹</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #EEF6FC;
+  --surface: #FFFFFF;
+  --primary: #7EB8E6;
+  --primary-soft: #D6EAF8;
+  --primary-ink: #2E6A9A;
+  --accent: #F29BB8;
+  --accent-strong: #E56F98;
+  --accent-soft: #FDE7EF;
+  --on-accent: #23364A;
+  --text: #23364A;
+  --text-muted: #5F7488;
+  --border: #DCE8F2;
+  --warn-bg: #FFF4C7;
+  --warn-text: #5C4700;
+  --danger: #B3284F;
+  --shadow: 0 4px 20px rgba(126, 184, 230, 0.15);
+  --r-card: 20px;
+  --r-btn: 14px;
+  --dur: 200ms;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14212E;
+    --surface: #1C2C3C;
+    --primary-soft: #243B52;
+    --primary-ink: #9ACBF0;
+    --accent-soft: #3A2632;
+    --text: #E6EEF5;
+    --text-muted: #9DB0C3;
+    --border: #2B4056;
+    --warn-bg: #4A3D10;
+    --warn-text: #FFE9A3;
+    --danger: #FF8FB0;
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.5 Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  overflow-x: hidden;
+}
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; border-radius: 6px; }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
+
+/* Header */
+header.top { padding: 24px 0 8px; }
+.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 12px; margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+.brand-icon { width: 44px; height: 44px; border-radius: 14px; background: var(--surface); box-shadow: var(--shadow); display: grid; place-items: center; font-size: 24px; }
+.brand small { font-weight: 500; color: var(--text-muted); font-size: 16px; }
+.today { color: var(--text-muted); font-size: 14px; }
+
+.banner { margin: 12px 0 0; padding: 12px 16px; border-radius: 14px; background: var(--warn-bg); color: var(--warn-text); font-weight: 500; font-size: 14px; }
+
+/* Layout */
+main.layout {
+  display: grid; gap: 16px; padding-top: 16px; padding-bottom: 24px;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "now" "next" "queue" "stats" "history" "manage";
+}
+@media (min-width: 640px) {
+  main.layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: "now next" "queue queue" "stats stats" "history history" "manage manage";
+  }
+}
+@media (min-width: 1025px) {
+  main.layout {
+    gap: 20px;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    grid-template-areas: "now stats" "next stats" "queue stats" "history manage";
+    align-items: start;
+  }
+  #stats { align-self: stretch; }
+}
+#now { grid-area: now; } #next { grid-area: next; } #queue { grid-area: queue; }
+#stats { grid-area: stats; } #history { grid-area: history; } #manage { grid-area: manage; }
+
+.card { background: var(--surface); border-radius: var(--r-card); box-shadow: var(--shadow); padding: 20px; min-width: 0; }
+@media (min-width: 640px) { .card { padding: 24px; } }
+.card h2 { margin: 0 0 16px; font-size: 19px; font-weight: 700; color: var(--primary-ink); letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; }
+.card h2::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--primary); }
+.muted { color: var(--text-muted); }
+
+/* Now */
+#now { background: var(--accent-soft); box-shadow: 0 6px 28px rgba(242, 155, 184, 0.22); }
+.now-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.eyebrow { font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
+.now-num { font-size: clamp(56px, 12vw, 72px); font-weight: 800; line-height: 1.05; letter-spacing: -0.03em; margin: 12px 0 2px; }
+.now-res { font-size: 18px; font-weight: 500; }
+.now-period { margin-top: 6px; color: var(--text-muted); }
+.now-period strong { color: var(--text); font-weight: 600; }
+.badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+.badge-ok { background: var(--surface); color: var(--primary-ink); }
+.badge-soon { background: var(--primary-soft); color: var(--primary-ink); }
+.badge-over { background: var(--accent-strong); color: #2A0E1A; }
+.actions { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+.btn {
+  min-height: 48px; padding: 0 20px; border-radius: var(--r-btn); border: 2px solid transparent;
+  font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  transition: background var(--dur), border-color var(--dur), transform var(--dur), box-shadow var(--dur);
+}
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn-primary { background: var(--accent); color: var(--on-accent); box-shadow: 0 4px 14px rgba(229, 111, 152, 0.3); }
+.btn-primary:hover:not(:disabled) { background: var(--accent-strong); }
+.btn-outline { background: transparent; border-color: var(--primary); color: var(--text); }
+.btn-outline:hover:not(:disabled) { background: var(--primary-soft); }
+.btn-soft { background: var(--primary-soft); color: var(--text); }
+.btn-soft:hover:not(:disabled) { border-color: var(--primary); }
+.btn-danger { background: var(--danger); color: #fff; }
+@media (prefers-color-scheme: dark) { .btn-danger { color: #2A0E1A; } }
+@media (max-width: 639px) { .actions .btn { flex: 1 1 100%; } }
+
+.pop { animation: pop 250ms ease-out; }
+@keyframes pop { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* Next */
+.next-num { font-size: 40px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
+.next-res { font-weight: 500; margin-top: 2px; }
+.next-date { margin-top: 10px; display: inline-block; padding: 6px 12px; border-radius: 999px; background: var(--primary-soft); font-size: 14px; font-weight: 500; }
+
+/* Queue */
+.chips { display: flex; align-items: center; gap: 6px; overflow-x: auto; padding: 4px 2px 8px; scrollbar-width: thin; margin: 0; list-style: none; }
+.chips li { display: flex; align-items: center; gap: 6px; flex: none; }
+.chip { min-height: 44px; min-width: 44px; padding: 0 16px; border-radius: 999px; background: var(--primary-soft); display: inline-flex; align-items: center; justify-content: center; font-weight: 600; border: 2px solid transparent; white-space: nowrap; }
+.chip.cur { background: var(--accent); color: var(--on-accent); }
+.chip.nxt { background: var(--surface); border-color: var(--primary); }
+.arrow { color: var(--primary); font-weight: 700; }
+.legend { display: flex; gap: 16px; font-size: 13px; color: var(--text-muted); margin-top: 6px; flex-wrap: wrap; }
+.legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+.legend .l-cur::before { background: var(--accent); }
+.legend .l-nxt::before { border: 2px solid var(--primary); width: 6px; height: 6px; }
+
+/* Stats */
+table { width: 100%; border-collapse: collapse; font-size: 15px; }
+th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); }
+th { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+th button { background: none; border: 0; padding: 0; min-height: 32px; font-weight: 600; color: inherit; cursor: pointer; font-size: 13px; }
+th button:hover { color: var(--primary-ink); }
+th .ind { display: inline-block; width: 1em; }
+tr.leader td:first-child { font-weight: 700; }
+.bars { margin-top: 20px; display: grid; gap: 10px; }
+.bar-row { display: grid; grid-template-columns: 56px minmax(0, 1fr) 28px; align-items: center; gap: 10px; font-size: 14px; }
+.bar-track { height: 14px; background: var(--primary-soft); border-radius: 999px; overflow: hidden; }
+.bar-fill { height: 100%; background: var(--primary); border-radius: 999px; transition: width 250ms ease; }
+.bar-row.leader .bar-fill { background: var(--accent); }
+.bar-val { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.total { margin-top: 16px; padding: 12px 14px; border-radius: 14px; background: var(--primary-soft); font-weight: 600; font-size: 15px; }
+.bars-title { margin: 22px 0 0; font-size: 14px; font-weight: 600; color: var(--text-muted); }
+
+/* History */
+.seg { display: inline-flex; background: var(--primary-soft); border-radius: 999px; padding: 4px; gap: 2px; margin-bottom: 12px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; border-radius: 999px; min-height: 40px; padding: 0 16px; font-weight: 600; font-size: 14px; cursor: pointer; color: var(--text-muted); }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: 0 1px 4px rgba(35, 54, 74, 0.1); }
+.hist { list-style: none; margin: 0; padding: 0; }
+.hist li { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.hist li:last-child { border-bottom: 0; }
+.h-ico { flex: none; width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; font-weight: 700; }
+.h-ico.c { background: var(--accent-soft); color: var(--accent-strong); }
+.h-ico.s { background: var(--primary-soft); color: var(--primary-ink); }
+.h-main { flex: 1; min-width: 0; }
+.h-title { font-weight: 600; }
+.h-sub { font-size: 14px; color: var(--text-muted); overflow-wrap: anywhere; }
+.link-btn { background: none; border: 0; padding: 0 8px; min-height: 44px; color: var(--primary-ink); font-weight: 600; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; font-size: 14px; }
+.empty { padding: 20px; text-align: center; color: var(--text-muted); background: var(--bg); border-radius: 14px; }
+.more { margin-top: 12px; width: 100%; }
+
+/* Manage */
+.add-form { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; margin-bottom: 16px; }
+@media (min-width: 480px) { .add-form { grid-template-columns: 120px minmax(0, 1fr) auto; align-items: start; } }
+.field label { display: block; font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; }
+.input { width: 100%; min-height: 48px; padding: 0 14px; border-radius: 12px; border: 2px solid var(--border); background: var(--surface); transition: border-color var(--dur); }
+.input:focus { outline: none; border-color: var(--primary); }
+.input[aria-invalid="true"] { border-color: var(--danger); }
+.err { color: var(--danger); font-size: 13px; font-weight: 500; min-height: 18px; margin-top: 4px; }
+.add-form .btn { margin-top: 22px; }
+@media (max-width: 479px) { .add-form .btn { margin-top: 0; width: 100%; } }
+.apts { list-style: none; margin: 0; padding: 0; }
+.apts li { display: flex; align-items: center; gap: 12px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+.apts li:last-child { border-bottom: 0; }
+.apt-num { flex: none; min-width: 72px; font-weight: 700; }
+.apt-num.cur { color: var(--accent-strong); }
+.name-btn { flex: 1; min-width: 0; text-align: left; background: none; border: 0; min-height: 44px; padding: 0 8px; border-radius: 10px; cursor: text; overflow-wrap: anywhere; }
+.name-btn:hover { background: var(--primary-soft); }
+.name-btn.placeholder { color: var(--text-muted); font-style: italic; }
+.name-input { flex: 1; min-height: 44px; }
+.icon-btn { flex: none; width: 44px; height: 44px; border-radius: 12px; border: 0; background: transparent; cursor: pointer; font-size: 18px; display: grid; place-items: center; }
+.icon-btn:hover:not(:disabled) { background: var(--accent-soft); }
+.icon-btn:disabled { opacity: .35; cursor: not-allowed; }
+.hint { font-size: 13px; color: var(--text-muted); margin: 10px 0 0; }
+
+/* Footer */
+footer { padding: 8px 0 40px; font-size: 14px; color: var(--text-muted); }
+footer .wrap { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+footer p { margin: 0; max-width: 720px; }
+.reset-btn { color: var(--danger); }
+
+/* Modal */
+dialog { border: 0; padding: 0; border-radius: var(--r-card); background: var(--surface); color: var(--text); width: min(440px, calc(100vw - 32px)); box-shadow: 0 20px 60px rgba(20, 33, 46, 0.3); }
+dialog::backdrop { background: rgba(20, 33, 46, 0.45); }
+dialog[open] { animation: pop 200ms ease-out; }
+.modal-form { padding: 24px; }
+.modal-form h3 { margin: 0 0 8px; font-size: 20px; }
+.modal-form p { margin: 0 0 16px; color: var(--text-muted); }
+.modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px; flex-wrap: wrap-reverse; }
+@media (max-width: 479px) { .modal-actions .btn { flex: 1 1 100%; } }
+
+/* Toast */
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); background: var(--text); color: var(--surface); padding: 14px 20px; border-radius: 14px; font-weight: 500; box-shadow: 0 10px 30px rgba(20, 33, 46, 0.3); opacity: 0; pointer-events: none; transition: opacity var(--dur), transform var(--dur); max-width: calc(100vw - 32px); z-index: 10; }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <h1 class="brand"><span class="brand-icon" aria-hidden="true">🧹</span><span>Уборка площадки <small>· 3 этаж</small></span></h1>
+    <div class="today" id="today"></div>
+  </div>
+  <div class="wrap"><div class="banner" id="storageBanner" role="alert" hidden>⚠️ Хранилище браузера недоступно. Данные не сохранятся после закрытия страницы.</div></div>
+</header>
+
+<main class="wrap layout">
+  <section class="card" id="now" aria-label="Сейчас убирает"><div id="nowBody"></div></section>
+  <section class="card" id="next" aria-labelledby="nextH"><h2 id="nextH">Следующая</h2><div id="nextBody"></div></section>
+  <section class="card" id="queue" aria-labelledby="queueH"><h2 id="queueH">Очередь</h2><div id="queueBody"></div></section>
+  <section class="card" id="stats" aria-labelledby="statsH"><h2 id="statsH">Статистика</h2><div id="statsBody"></div></section>
+  <section class="card" id="history" aria-labelledby="histH">
+    <h2 id="histH">История</h2>
+    <div class="seg" role="group" aria-label="Фильтр истории">
+      <button type="button" data-f="all" aria-pressed="true">Все</button>
+      <button type="button" data-f="cleaned" aria-pressed="false">Уборки</button>
+      <button type="button" data-f="skipped" aria-pressed="false">Пропуски</button>
+    </div>
+    <div id="histBody"></div>
+  </section>
+  <section class="card" id="manage" aria-labelledby="manageH">
+    <h2 id="manageH">Управление квартирами</h2>
+    <form class="add-form" id="addForm" novalidate>
+      <div class="field">
+        <label for="addNum">Номер квартиры</label>
+        <input class="input" id="addNum" type="number" inputmode="numeric" min="1" max="9999" step="1" aria-describedby="addNumErr" required>
+        <div class="err" id="addNumErr" aria-live="polite"></div>
+      </div>
+      <div class="field">
+        <label for="addRes">Жильцы <span class="muted">(необязательно)</span></label>
+        <input class="input" id="addRes" type="text" maxlength="40" placeholder="Например, Ивановы" autocomplete="off">
+      </div>
+      <button class="btn btn-soft" type="submit">+ Добавить</button>
+    </form>
+    <div id="manageBody"></div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>💾 Данные хранятся только в этом браузере и на этом устройстве. Отметки на одном телефоне не видны на другом, поэтому лучше вести сайт на одном общем устройстве. Очистка данных браузера удалит историю.</p>
+    <button type="button" class="link-btn reset-btn" id="resetBtn" style="padding:0">Сбросить все данные</button>
+  </div>
+</footer>
+
+<dialog id="modal" aria-labelledby="modalTitle">
+  <form class="modal-form" id="modalForm" novalidate>
+    <h3 id="modalTitle"></h3>
+    <div id="modalBody"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-outline" id="modalCancel">Отмена</button>
+      <button type="submit" class="btn btn-primary" id="modalOk">OK</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  'use strict';
+  const KEY = 'floor3-cleaning-v1';
+  const HIST_PAGE = 10;
+
+  /* ---------- Dates (local time, week starts Monday) ---------- */
+  const pad = n => String(n).padStart(2, '0');
+  const toISO = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const parseISO = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+  const today = () => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); };
+  const addDays = (d, n) => { const r = new Date(d); r.setDate(r.getDate() + n); return r; };
+  const monday = d => { const r = new Date(d.getFullYear(), d.getMonth(), d.getDate()); r.setDate(r.getDate() - (r.getDay() + 6) % 7); return r; };
+  const diffDays = (a, b) => Math.round((a - b) / 86400000);
+  const maxDate = (a, b) => (a > b ? a : b);
+  const fmtDM = d => `${pad(d.getDate())}.${pad(d.getMonth() + 1)}`;
+  const fmtFull = d => `${fmtDM(d)}.${d.getFullYear()}`;
+  const isISO = s => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s);
+
+  /* ---------- DOM helper (text via textContent only) ---------- */
+  const $ = s => document.querySelector(s);
+  function h(tag, props, ...kids) {
+    const el = document.createElement(tag);
+    for (const [k, v] of Object.entries(props || {})) {
+      if (v == null || v === false) continue;
+      if (k === 'class') el.className = v;
+      else if (k === 'text') el.textContent = v;
+      else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+      else el.setAttribute(k, v === true ? '' : v);
+    }
+    for (const c of kids.flat()) {
+      if (c == null || c === false) continue;
+      el.append(c instanceof Node ? c : document.createTextNode(String(c)));
+    }
+    return el;
+  }
+
+  const fill = (el, ...kids) => el.replaceChildren(...kids.flat().filter(k => k != null && k !== false));
+
+  /* ---------- State & storage ---------- */
+  function initialState() {
+    const nums = [9, 10, 11, 12, 13, 14];
+    return {
+      version: 1,
+      apartments: nums.map(n => ({ id: 'a' + n, number: n, residents: '', active: true })),
+      queue: nums.map(n => 'a' + n),
+      currentIndex: 0,
+      dutyStart: toISO(monday(today())),
+      history: []
+    };
+  }
+
+  let storageOK = true;
+  try { const t = '__t'; localStorage.setItem(t, t); localStorage.removeItem(t); } catch (e) { storageOK = false; }
+
+  function valid(s) {
+    return s && s.version === 1 && Array.isArray(s.apartments) && Array.isArray(s.queue) && s.queue.length > 0 &&
+      Array.isArray(s.history) && isISO(s.dutyStart) && Number.isInteger(s.currentIndex) &&
+      s.queue.every(id => s.apartments.some(a => a.id === id && a.active));
+  }
+
+  function load() {
+    if (!storageOK) return initialState();
+    let raw = null;
+    try { raw = localStorage.getItem(KEY); } catch (e) { storageOK = false; return initialState(); }
+    if (!raw) return initialState();
+    try {
+      const s = JSON.parse(raw);
+      if (!valid(s)) throw new Error('invalid shape');
+      if (s.currentIndex < 0 || s.currentIndex >= s.queue.length) s.currentIndex = 0;
+      return s;
+    } catch (e) {
+      console.warn('[floor3-cleaning] Повреждённые данные в localStorage, восстановлены начальные.', e);
+      return initialState();
+    }
+  }
+
+  function save() {
+    if (!storageOK) return;
+    try { localStorage.setItem(KEY, JSON.stringify(state)); }
+    catch (e) { storageOK = false; $('#storageBanner').hidden = false; }
+  }
+
+  let state = load();
+  save();
+
+  const getApt = id => state.apartments.find(a => a.id === id);
+  const currentId = () => state.queue[state.currentIndex];
+  const nextId = () => state.queue[(state.currentIndex + 1) % state.queue.length];
+  const aptLabel = a => 'Кв. ' + a.number;
+
+  /* ---------- UI state ---------- */
+  let histFilter = 'all';
+  let histLimit = HIST_PAGE;
+  let sort = { by: 'number', dir: 1 };
+  let animateNow = false;
+
+  /* ---------- Toast ---------- */
+  let toastTimer;
+  function toast(msg) {
+    const t = $('#toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  /* ---------- Modal ---------- */
+  const modal = $('#modal');
+  let modalConfirm = null;
+  function openModal({ title, text, body = [], ok = 'Подтвердить', okClass = 'btn-primary', onConfirm, focus }) {
+    $('#modalTitle').textContent = title;
+    const b = $('#modalBody');
+    fill(b, ...(text ? [h('p', { text })] : []), ...body);
+    const okBtn = $('#modalOk');
+    okBtn.textContent = ok;
+    okBtn.className = 'btn ' + okClass;
+    okBtn.disabled = false;
+    modalConfirm = onConfirm;
+    if (typeof modal.showModal === 'function') modal.showModal(); else modal.setAttribute('open', '');
+    (focus || okBtn).focus();
+  }
+  function closeModal() { modalConfirm = null; if (modal.open) modal.close(); }
+  $('#modalForm').addEventListener('submit', e => {
+    e.preventDefault();
+    if ($('#modalOk').disabled || !modalConfirm) return;
+    if (modalConfirm() !== false) closeModal();
+  });
+  $('#modalCancel').addEventListener('click', closeModal);
+  modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+  modal.addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); closeModal(); } });
+
+  /* ---------- Actions ---------- */
+  function newHistId() { return 'h_' + Date.now() + Math.random().toString(36).slice(2, 6); }
+
+  function openClean() {
+    const apt = getApt(currentId());
+    const t = toISO(today());
+    const input = h('input', { class: 'input', type: 'date', id: 'cleanDate', max: t, value: t, required: true });
+    const err = h('div', { class: 'err', 'aria-live': 'polite' });
+    openModal({
+      title: `Отметить уборку квартирой ${apt.number}?`,
+      text: 'После подтверждения очередь перейдёт к следующей квартире.',
+      body: [h('div', { class: 'field' }, h('label', { for: 'cleanDate', text: 'Дата уборки' }), input, err)],
+      ok: '✓ Убрано',
+      onConfirm: () => {
+        const v = input.value;
+        if (!isISO(v)) { err.textContent = 'Укажите дату уборки'; return false; }
+        if (v > t) { err.textContent = 'Дата не может быть в будущем'; return false; }
+        const prevNum = apt.number;
+        state.history.push({
+          id: newHistId(), type: 'cleaned', apartmentId: apt.id, apartmentNumber: apt.number,
+          date: v, reason: null, createdAt: new Date().toISOString(),
+          prev: { currentId: apt.id, dutyStart: state.dutyStart }
+        });
+        state.currentIndex = (state.currentIndex + 1) % state.queue.length;
+        state.dutyStart = toISO(maxDate(addDays(monday(parseISO(v)), 7), monday(today())));
+        commit(true);
+        toast(`Спасибо, кв. ${prevNum}! Очередь перешла к кв. ${getApt(currentId()).number}`);
+      }
+    });
+  }
+
+  function openSkip() {
+    const apt = getApt(currentId());
+    const input = h('input', { class: 'input', type: 'text', id: 'skipReason', maxlength: '100', placeholder: 'Например, уехали', autocomplete: 'off' });
+    openModal({
+      title: `Кв. ${apt.number} пропускает ход?`,
+      text: 'Уборка не засчитается, дежурство перейдёт к следующей квартире.',
+      body: [h('div', { class: 'field' }, h('label', { for: 'skipReason', text: 'Причина (необязательно)' }), input)],
+      ok: 'Пропустить ход',
+      focus: input,
+      onConfirm: () => {
+        const reason = input.value.trim().slice(0, 100) || null;
+        state.history.push({
+          id: newHistId(), type: 'skipped', apartmentId: apt.id, apartmentNumber: apt.number,
+          date: toISO(today()), reason, createdAt: new Date().toISOString(),
+          prev: { currentId: apt.id, dutyStart: state.dutyStart }
+        });
+        state.currentIndex = (state.currentIndex + 1) % state.queue.length;
+        state.dutyStart = toISO(maxDate(parseISO(state.dutyStart), monday(today())));
+        commit(true);
+        toast(`Кв. ${apt.number} пропускает ход. Сейчас дежурит кв. ${getApt(currentId()).number}`);
+      }
+    });
+  }
+
+  function canUndo() {
+    const last = state.history[state.history.length - 1];
+    return !!(last && last.prev && state.queue.includes(last.prev.currentId));
+  }
+  function openUndo() {
+    const last = state.history[state.history.length - 1];
+    const what = last.type === 'cleaned' ? 'уборка' : 'пропуск';
+    openModal({
+      title: 'Отменить последнюю запись?',
+      text: `Будет удалена запись «${what}» кв. ${last.apartmentNumber} от ${fmtFull(parseISO(last.date))}. Очередь вернётся к кв. ${getApt(last.prev.currentId).number}.`,
+      ok: 'Отменить запись',
+      onConfirm: () => {
+        state.history.pop();
+        state.currentIndex = state.queue.indexOf(last.prev.currentId);
+        state.dutyStart = last.prev.dutyStart;
+        commit(true);
+        toast(`Запись отменена. Дежурит кв. ${getApt(currentId()).number}`);
+      }
+    });
+  }
+
+  function openDelete(id) {
+    const apt = getApt(id);
+    openModal({
+      title: `Удалить кв. ${apt.number} из очереди?`,
+      text: 'История её уборок сохранится.',
+      ok: 'Удалить', okClass: 'btn-danger',
+      onConfirm: () => {
+        const idx = state.queue.indexOf(id);
+        const wasCurrent = idx === state.currentIndex;
+        state.queue.splice(idx, 1);
+        apt.active = false;
+        if (idx < state.currentIndex) state.currentIndex--;
+        if (state.currentIndex >= state.queue.length) state.currentIndex = 0;
+        commit(wasCurrent);
+        toast(`Кв. ${apt.number} удалена из очереди`);
+      }
+    });
+  }
+
+  function openReset() {
+    const input = h('input', { class: 'input', type: 'text', id: 'resetInput', autocomplete: 'off', 'aria-label': 'Введите СБРОС' });
+    openModal({
+      title: 'Сбросить все данные?',
+      text: 'Будут удалены история и настройки. Введите СБРОС для подтверждения.',
+      body: [input],
+      ok: 'Сбросить', okClass: 'btn-danger',
+      focus: input,
+      onConfirm: () => {
+        if (input.value.trim().toUpperCase() !== 'СБРОС') return false;
+        state = initialState();
+        histFilter = 'all'; histLimit = HIST_PAGE; sort = { by: 'number', dir: 1 };
+        commit(true);
+        toast('Данные сброшены. Очередь начинается с кв. 9');
+      }
+    });
+    const okBtn = $('#modalOk');
+    okBtn.disabled = true;
+    input.addEventListener('input', () => { okBtn.disabled = input.value.trim().toUpperCase() !== 'СБРОС'; });
+  }
+  $('#resetBtn').addEventListener('click', openReset);
+
+  /* Add apartment */
+  const addForm = $('#addForm'), addNum = $('#addNum'), addRes = $('#addRes'), addErr = $('#addNumErr');
+  function setAddErr(msg) { addErr.textContent = msg; addNum.setAttribute('aria-invalid', msg ? 'true' : 'false'); }
+  addNum.addEventListener('input', () => setAddErr(''));
+  addForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const raw = addNum.value.trim();
+    if (!raw) return setAddErr('Введите номер квартиры'), addNum.focus();
+    const n = Number(raw);
+    if (!Number.isInteger(n) || n < 1 || n > 9999) return setAddErr('Номер — целое число от 1 до 9999'), addNum.focus();
+    if (state.apartments.some(a => a.active && a.number === n)) return setAddErr('Такая квартира уже есть'), addNum.focus();
+    const residents = addRes.value.trim().slice(0, 40);
+    let apt = state.apartments.find(a => a.number === n);
+    if (apt) { apt.active = true; apt.residents = residents; }
+    else { apt = { id: 'a' + n, number: n, residents, active: true }; state.apartments.push(apt); }
+    state.queue.push(apt.id);
+    addNum.value = ''; addRes.value = ''; setAddErr('');
+    commit(false);
+    toast(`Кв. ${n} добавлена в конец очереди`);
+  });
+
+  function commit(animate) { save(); animateNow = animate; render(); }
+
+  /* ---------- Render ---------- */
+  function renderNow() {
+    const apt = getApt(currentId());
+    const start = parseISO(state.dutyStart), end = addDays(start, 6), t = today();
+    const over = diffDays(t, end);
+    let badge;
+    if (start > t) badge = h('span', { class: 'badge badge-soon', text: 'Начнёт с ' + fmtDM(start) });
+    else if (over > 0) badge = h('span', { class: 'badge badge-over', text: `Просрочено на ${over} дн.` });
+    else badge = h('span', { class: 'badge badge-ok', text: '● На дежурстве' });
+    fill($('#nowBody'), 
+      h('div', { class: 'now-top' }, h('span', { class: 'eyebrow', text: 'Сейчас убирает' }), badge),
+      h('div', { class: 'now-num' + (animateNow ? ' pop' : ''), text: aptLabel(apt) }),
+      apt.residents ? h('div', { class: 'now-res', text: apt.residents }) : null,
+      h('div', { class: 'now-period' }, 'Неделя ', h('strong', { text: `${fmtDM(start)} – ${fmtDM(end)}` })),
+      h('div', { class: 'actions' },
+        h('button', { type: 'button', class: 'btn btn-primary', onclick: openClean }, '✓ Убрано'),
+        h('button', { type: 'button', class: 'btn btn-outline', onclick: openSkip }, 'Пропустить ход'))
+    );
+  }
+
+  function renderNext() {
+    const box = $('#nextBody');
+    if (state.queue.length === 1) {
+      fill(box, h('div', { class: 'next-res', text: 'Следующая: та же квартира' }),
+        h('div', { class: 'muted', text: 'В очереди одна квартира.' }));
+      return;
+    }
+    const apt = getApt(nextId());
+    const from = maxDate(addDays(parseISO(state.dutyStart), 7), addDays(monday(today()), 7));
+    fill(box, 
+      h('div', { class: 'next-num' + (animateNow ? ' pop' : ''), text: aptLabel(apt) }),
+      apt.residents ? h('div', { class: 'next-res', text: apt.residents }) : null,
+      h('span', { class: 'next-date', text: 'Дежурит с ' + fmtDM(from) })
+    );
+  }
+
+  function renderQueue() {
+    const n = state.queue.length;
+    const items = [];
+    for (let i = 0; i < n; i++) {
+      const id = state.queue[(state.currentIndex + i) % n];
+      const apt = getApt(id);
+      const cls = i === 0 ? 'chip cur' : (i === 1 ? 'chip nxt' : 'chip');
+      const label = i === 0 ? `${aptLabel(apt)}, дежурит сейчас` : (i === 1 ? `${aptLabel(apt)}, следующая` : aptLabel(apt));
+      items.push(h('li', null,
+        i > 0 ? h('span', { class: 'arrow', 'aria-hidden': 'true', text: '→' }) : null,
+        h('span', { class: cls, 'aria-label': label, title: apt.residents || null, text: String(apt.number) })));
+    }
+    fill($('#queueBody'), 
+      h('ol', { class: 'chips', 'aria-label': 'Порядок дежурства' }, items),
+      h('div', { class: 'legend' }, h('span', { class: 'l-cur', text: 'сейчас' }), n > 1 ? h('span', { class: 'l-nxt', text: 'следующая' }) : null)
+    );
+  }
+
+  function computeStats() {
+    const m = {};
+    for (const e of state.history) {
+      const s = m[e.apartmentId] || (m[e.apartmentId] = { c: 0, s: 0, last: null });
+      if (e.type === 'cleaned') { s.c++; if (!s.last || e.date > s.last) s.last = e.date; }
+      else s.s++;
+    }
+    return m;
+  }
+
+  function renderStats() {
+    const m = computeStats();
+    const rows = state.queue.map(id => {
+      const a = getApt(id), s = m[id] || { c: 0, s: 0, last: null };
+      return { a, ...s };
+    });
+    const max = Math.max(0, ...rows.map(r => r.c));
+    rows.sort((x, y) => sort.by === 'number'
+      ? (x.a.number - y.a.number) * sort.dir
+      : ((x.c - y.c) * sort.dir || x.a.number - y.a.number));
+
+    const sortBtn = (by, label) => {
+      const active = sort.by === by;
+      const ind = active ? (sort.dir === 1 ? '▲' : '▼') : '';
+      return h('button', {
+        type: 'button', onclick: () => {
+          if (sort.by === by) sort.dir *= -1; else sort = { by, dir: by === 'number' ? 1 : -1 };
+          renderStats();
+        }
+      }, label, ' ', h('span', { class: 'ind', 'aria-hidden': 'true', text: ind }));
+    };
+    const ariaSort = by => sort.by === by ? (sort.dir === 1 ? 'ascending' : 'descending') : 'none';
+
+    const allHist = state.history;
+    const totalC = allHist.filter(e => e.type === 'cleaned').length;
+    const totalS = allHist.length - totalC;
+
+    fill($('#statsBody'), 
+      h('table', null,
+        h('thead', null, h('tr', null,
+          h('th', { scope: 'col', 'aria-sort': ariaSort('number') }, sortBtn('number', 'Квартира')),
+          h('th', { scope: 'col', class: 'n', 'aria-sort': ariaSort('cleaned') }, sortBtn('cleaned', 'Уборок')),
+          h('th', { scope: 'col', class: 'n' }, 'Пропусков'),
+          h('th', { scope: 'col', class: 'n' }, 'Последняя'))),
+        h('tbody', null, rows.map(r => h('tr', { class: max > 0 && r.c === max ? 'leader' : null },
+          h('td', null, aptLabel(r.a), max > 0 && r.c === max ? ' 🏆' : ''),
+          h('td', { class: 'n', text: String(r.c) }),
+          h('td', { class: 'n', text: String(r.s) }),
+          h('td', { class: 'n', text: r.last ? fmtFull(parseISO(r.last)) : '—' }))))
+      ),
+      h('p', { class: 'bars-title', text: 'Уборки по квартирам' }),
+      h('div', { class: 'bars', role: 'img', 'aria-label': 'Диаграмма уборок: ' + rows.map(r => `кв. ${r.a.number} — ${r.c}`).join(', ') },
+        rows.map(r => h('div', { class: 'bar-row' + (max > 0 && r.c === max ? ' leader' : ''), 'aria-hidden': 'true' },
+          h('span', { text: 'Кв. ' + r.a.number }),
+          h('div', { class: 'bar-track' }, h('div', { class: 'bar-fill', style: `width:${max ? (r.c / max) * 100 : 0}%` })),
+          h('span', { class: 'bar-val', text: String(r.c) })))),
+      h('div', { class: 'total', text: `Всего уборок: ${totalC} · Пропусков: ${totalS}` })
+    );
+  }
+
+  function renderHistory() {
+    document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.f === histFilter)));
+    const box = $('#histBody');
+    if (!state.history.length) {
+      fill(box, h('div', { class: 'empty', text: `Пока нет записей. Первая уборка — за кв. ${getApt(currentId()).number} 🧽` }));
+      return;
+    }
+    const lastId = state.history[state.history.length - 1].id;
+    const undoable = canUndo();
+    const list = state.history.slice().reverse().filter(e => histFilter === 'all' || e.type === histFilter);
+    if (!list.length) {
+      fill(box, h('div', { class: 'empty', text: histFilter === 'cleaned' ? 'Уборок пока нет.' : 'Пропусков пока нет.' }));
+      return;
+    }
+    const shown = list.slice(0, histLimit);
+    const ul = h('ul', { class: 'hist' }, shown.map(e => {
+      const a = getApt(e.apartmentId);
+      const removed = !a || !a.active;
+      const cleaned = e.type === 'cleaned';
+      return h('li', null,
+        h('span', { class: 'h-ico ' + (cleaned ? 'c' : 's'), 'aria-hidden': 'true', text: cleaned ? '✓' : '⏭' }),
+        h('div', { class: 'h-main' },
+          h('div', { class: 'h-title', text: `Кв. ${e.apartmentNumber}${removed ? ' (удалена)' : ''} · ${cleaned ? 'уборка' : 'пропуск'}` }),
+          h('div', { class: 'h-sub', text: fmtFull(parseISO(e.date)) + (e.reason ? ` · ${e.reason}` : '') })),
+        e.id === lastId && undoable ? h('button', { type: 'button', class: 'link-btn', onclick: openUndo, text: 'Отменить' }) : null);
+    }));
+    const rest = list.length - shown.length;
+    fill(box, ul, rest > 0
+      ? h('button', { type: 'button', class: 'btn btn-soft more', onclick: () => { histLimit += HIST_PAGE; renderHistory(); } }, `Показать ещё (${rest})`)
+      : null);
+  }
+  document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
+    histFilter = b.dataset.f; histLimit = HIST_PAGE; renderHistory();
+  }));
+
+  function startNameEdit(li, apt) {
+    const btn = li.querySelector('.name-btn');
+    const input = h('input', { class: 'input name-input', type: 'text', maxlength: '40', value: apt.residents, 'aria-label': `Жильцы кв. ${apt.number}`, placeholder: 'Жильцы' });
+    let done = false;
+    const finish = saveIt => {
+      if (done) return; done = true;
+      if (saveIt) { apt.residents = input.value.trim().slice(0, 40); save(); }
+      animateNow = false; render();
+      const again = document.querySelector(`[data-name="${apt.id}"]`);
+      if (again) again.focus();
+    };
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); finish(true); }
+      else if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+    });
+    input.addEventListener('blur', () => finish(true));
+    btn.replaceWith(input);
+    input.focus(); input.select();
+  }
+
+  function renderManage() {
+    const only = state.queue.length === 1;
+    const cur = currentId();
+    const ul = h('ul', { class: 'apts' }, state.queue.map(id => {
+      const a = getApt(id);
+      const li = h('li', null,
+        h('span', { class: 'apt-num' + (id === cur ? ' cur' : ''), text: aptLabel(a) }),
+        h('button', {
+          type: 'button', class: 'name-btn' + (a.residents ? '' : ' placeholder'), 'data-name': a.id,
+          'aria-label': `Изменить жильцов кв. ${a.number}`, title: 'Нажмите, чтобы изменить',
+          text: a.residents || 'Добавить имя жильцов'
+        }),
+        h('button', {
+          type: 'button', class: 'icon-btn', disabled: only, 'aria-label': `Удалить кв. ${a.number}`,
+          title: only ? 'Нельзя удалить последнюю квартиру' : `Удалить кв. ${a.number}`, text: '🗑'
+        }));
+      li.querySelector('.name-btn').addEventListener('click', () => startNameEdit(li, a));
+      li.querySelector('.icon-btn').addEventListener('click', () => openDelete(id));
+      return li;
+    }));
+    fill($('#manageBody'), ul,
+      h('p', { class: 'hint', text: only ? 'Последнюю квартиру удалить нельзя — в очереди должна остаться хотя бы одна.' : 'Нажмите на имя жильцов, чтобы изменить его. Новая квартира встаёт в конец очереди.' }));
+  }
+
+  function render() {
+    $('#today').textContent = 'Сегодня ' + fmtFull(today());
+    $('#storageBanner').hidden = storageOK;
+    renderNow(); renderNext(); renderQueue(); renderStats(); renderHistory(); renderManage();
+    animateNow = false;
+  }
+
+  render();
+  // Обновить статусы, если страница открыта через полночь
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
+})();
+</script>
+</body>
+</html>
